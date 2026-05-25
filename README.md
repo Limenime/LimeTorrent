@@ -5,7 +5,7 @@
 # LimeTorrent
 
 **A lightweight, self-hosted torrent manager with a REST API and Web UI.**  
-Built on [libtorrent 2.0.x](https://libtorrent.org) and [Flask](https://flask.palletsprojects.com).
+Built on [libtorrent 2.0.11](https://libtorrent.org) and [Flask](https://flask.palletsprojects.com).
 
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows-a3e635)](#installation)
 [![Arch](https://img.shields.io/badge/arch-amd64%20%7C%20arm64-a3e635)](#installation)
@@ -117,7 +117,7 @@ wget https://github.com/Limenime/LimeTorrent/releases/latest/download/LimeTorren
 tar -xvzf LimeTorrent.tgz
 
 # Make it executable
-chmod +x LimeTorrent
+chmod u+rwx LimeTorrent
 
 # (Optional) Install system-wide
 sudo mv LimeTorrent /usr/local/bin/LimeTorrent
