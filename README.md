@@ -21,7 +21,7 @@ Built on [libtorrent 2.0.x](https://libtorrent.org) and [Flask](https://flask.pa
 - [Screenshots](#screenshots)
 - [Installation](#installation)
   - [Linux (amd64)](#linux-amd64)
-  - [Linux (arm64)](#linux-arm64-raspberry-pi--oracle-cloud-etc)
+  - [Linux (arm64)](#linux-arm64)
   - [Windows (amd64)](#windows-amd64)
 - [Usage](#usage)
   - [CLI Options](#cli-options)
@@ -107,9 +107,9 @@ sudo mv LimeTorrent /usr/local/bin/LimeTorrent
 LimeTorrent
 ```
 
-### Linux (arm64) — Raspberry Pi / Oracle Cloud / etc.
+### Linux (arm64).
 
-For 64-bit ARM boards and servers (AArch64): Raspberry Pi 3/4/5, Oracle Cloud Ampere, AWS Graviton, etc.
+For 64-bit ARM boards.
 
 ```bash
 # Download the ARM64 binary
