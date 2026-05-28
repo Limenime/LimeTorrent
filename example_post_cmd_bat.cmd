@@ -7,7 +7,7 @@ REM ─────────────────────────�
 
 setlocal enabledelayedexpansion
 
-set LOG_DIR=%APPDATA%\.limetorrent\logs
+set LOG_DIR=C:\Users\SERVER\Desktop\python\LimeTorrent
 set LOG_FILE=%LOG_DIR%\download_history.log
 
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
@@ -26,19 +26,16 @@ set TIMESTAMP=%DT:~0,4%-%DT:~4,2%-%DT:~6,2% %DT:~8,2%:%DT:~10,2%:%DT:~12,2%
     echo   Location  : %TORRENT_SAVE_PATH%
     echo   Total     : %TORRENT_SIZE% bytes
     echo   File count: %TORRENT_FILE_COUNT%
+    echo   Api Key   : %LIME_API_KEY%
     echo.
 
-    REM ── Loop per-file using the four env vars ────────────
-    REM Because var names contain "[i]", use delayed expansion with call set
+    REM ── Loop per-file using underscore-indexed env vars ──────────
+    REM Accessible directly: %TORRENT_LISTFILE_NAME_0%, %TORRENT_LISTFILE_PATH_0%, etc.
     set /a LAST=%TORRENT_FILE_COUNT%-1
     for /l %%i in (0,1,!LAST!) do (
-        call set "fname=%%TORRENT_LISTFILE_NAME[%%i]%%"
-        call set "fpath=%%TORRENT_LISTFILE_PATH[%%i]%%"
-        call set "fsize=%%TORRENT_LISTFILE_SIZE[%%i]%%"
-
-        echo   [%%i] Name : !fname!
-        echo        Path : !fpath!
-        echo        Size : !fsize! bytes
+        echo   [%%i] Name : !TORRENT_LISTFILE_NAME_%%i!
+        echo        Path : !TORRENT_LISTFILE_PATH_%%i!
+        echo        Size : !TORRENT_LISTFILE_SIZE_%%i! bytes
     )
 
     echo.
