@@ -5,7 +5,7 @@
 #       or: POST /postcmd/global {"command": "/path/to/postcmd_log.sh"}
 # ─────────────────────────────────────────────────────────────────
 
-LOG_FILE="${HOME}/.limetorrent/logs/download_history.log"
+LOG_FILE="/content/download_history.log"
 mkdir -p "$(dirname "$LOG_FILE")"
 
 TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
@@ -19,22 +19,19 @@ SEPARATOR="───────────────────────
     echo "  Location  : $TORRENT_SAVE_PATH"
     echo "  Total     : $TORRENT_SIZE bytes"
     echo "  File count: $TORRENT_FILE_COUNT"
+    echo "  Api Key   : $LIME_API_KEY"
     echo ""
 
-    # ── Loop per-file using the four env vars ────────────
-    # Because variable names contain "[i]", access using ${!var} syntax
+    # ── Loop per-file using underscore-indexed env vars ──────────
+    # Accessible directly: $TORRENT_LISTFILE_NAME_0, $TORRENT_LISTFILE_PATH_0, etc.
     for (( i=0; i<TORRENT_FILE_COUNT; i++ )); do
-        name_var="TORRENT_LISTFILE_NAME[$i]"
-        path_var="TORRENT_LISTFILE_PATH[$i]"
-        size_var="TORRENT_LISTFILE_SIZE[$i]"
+        name_var="TORRENT_LISTFILE_NAME_${i}"
+        path_var="TORRENT_LISTFILE_PATH_${i}"
+        size_var="TORRENT_LISTFILE_SIZE_${i}"
 
-        fname="${!name_var}"
-        fpath="${!path_var}"
-        fsize="${!size_var}"
-
-        echo "  [$i] Name : $fname"
-        echo "       Path : $fpath"
-        echo "       Size : $fsize bytes"
+        echo "  [$i] Name : ${!name_var}"
+        echo "       Path : ${!path_var}"
+        echo "       Size : ${!size_var} bytes"
     done
 
     echo ""
