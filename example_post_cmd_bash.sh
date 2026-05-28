@@ -5,7 +5,7 @@
 #       or: POST /postcmd/global {"command": "/path/to/postcmd_log.sh"}
 # ─────────────────────────────────────────────────────────────────
 
-LOG_FILE="/content/download_history.log"
+LOG_FILE="${HOME}/.limetorrent/logs/download_history.log"
 mkdir -p "$(dirname "$LOG_FILE")"
 
 TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
