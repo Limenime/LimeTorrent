@@ -572,22 +572,30 @@ curl -X POST http://127.0.0.1:5000/postcmd/INFOHASH \
 | `LIME_API_KEY` | Current admin API key — use this to call the REST API from within the script without hard-coding credentials (matches `API_KEY` env var or auto-generated value) |
 | `LIME_API_URL` | Base URL of this LimeTorrent instance (e.g. `http://127.0.0.1:5000`) — combine with `LIME_API_KEY` to make API calls from the script |
 
-**Per-file** — indexed with `[i]` (zero-based, from `0` to `TORRENT_FILE_COUNT - 1`):
+**Per-file** — indexed with `_i` suffix (zero-based, from `0` to `TORRENT_FILE_COUNT - 1`):
 
 | Variable | Description |
 |---|---|
-| `TORRENT_LISTFILE_NAME[i]` | Relative path of file *i* inside the torrent (from the torrent root) |
-| `TORRENT_LISTFILE_PATH[i]` | Absolute path of file *i* on disk (`TORRENT_SAVE_PATH + "/" + TORRENT_LISTFILE_NAME[i]`) |
-| `TORRENT_LISTFILE_SIZE[i]` | Size of file *i* in bytes |
+| `TORRENT_LISTFILE_NAME_i` | Relative path of file *i* inside the torrent (from the torrent root) |
+| `TORRENT_LISTFILE_PATH_i` | Absolute path of file *i* on disk (`TORRENT_SAVE_PATH + "/" + TORRENT_LISTFILE_NAME_i`) |
+| `TORRENT_LISTFILE_SIZE_i` | Size of file *i* in bytes |
 
-> **Bash note:** Because variable names contain literal `[` and `]` characters, use indirect expansion to read them:
+> **Bash:** Variable names use underscore indexing — accessible directly or via indirect expansion in loops:
 > ```bash
-> name_var="TORRENT_LISTFILE_NAME[$i]"
-> fname="${!name_var}"
+> # Direct access (single file):
+> echo "$TORRENT_LISTFILE_PATH_0"
+>
+> # In a loop:
+> for (( i=0; i<TORRENT_FILE_COUNT; i++ )); do
+>     path_var="TORRENT_LISTFILE_PATH_${i}"
+>     echo "${!path_var}"
+> done
 > ```
-> **Windows note:** Use `call set` with delayed expansion:
+> **Windows (CMD):** Use delayed expansion in loops:
 > ```bat
-> call set "fname=%%TORRENT_LISTFILE_NAME[%%i]%%"
+> for /l %%i in (0,1,!LAST!) do (
+>     echo !TORRENT_LISTFILE_PATH_%%i!
+> )
 > ```
 
 - Commands run in a shell (`sh -c` / `cmd /c`) with a **5-minute timeout**
