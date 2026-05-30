@@ -5,7 +5,7 @@
 #       or: POST /postcmd/global {"command": "/path/to/postcmd_log.sh"}
 # ─────────────────────────────────────────────────────────────────
 
-LOG_FILE="${HOME}/.limetorrent/logs/download_history.log"
+LOG_FILE="/content/download_history.log"
 mkdir -p "$(dirname "$LOG_FILE")"
 
 TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
@@ -13,13 +13,14 @@ SEPARATOR="───────────────────────
 
 {
     echo "$SEPARATOR"
-    echo "  Completed : $TIMESTAMP"
-    echo "  Name      : $TORRENT_NAME"
-    echo "  Hash      : $TORRENT_HASH"
-    echo "  Location  : $TORRENT_SAVE_PATH"
-    echo "  Total     : $TORRENT_SIZE bytes"
-    echo "  File count: $TORRENT_FILE_COUNT"
-    echo "  Api Key   : $LIME_API_KEY"
+    echo "  Completed		: $TIMESTAMP"
+    echo "  Name			: $TORRENT_NAME"
+    echo "  Hash			: $TORRENT_HASH"
+    echo "  Location		: $TORRENT_SAVE_PATH"
+    echo "  Total			: $TORRENT_SIZE bytes"
+    echo "  File count		: $TORRENT_FILE_COUNT"
+    echo "  Api Key			: $LIME_API_KEY"
+	echo "  Api Endpoint	: $LIME_API_ENDPOINT"
     echo ""
 
     # ── Loop per-file using underscore-indexed env vars ──────────

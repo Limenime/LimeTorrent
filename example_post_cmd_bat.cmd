@@ -7,7 +7,7 @@ REM ─────────────────────────�
 
 setlocal enabledelayedexpansion
 
-set LOG_DIR=%APPDATA%\.limetorrent\logs
+set LOG_DIR=C:\Users\SERVER\Desktop\python\LimeTorrent
 set LOG_FILE=%LOG_DIR%\download_history.log
 
 if not exist "%LOG_DIR%" mkdir "%LOG_DIR%"
@@ -20,13 +20,14 @@ set TIMESTAMP=%DT:~0,4%-%DT:~4,2%-%DT:~6,2% %DT:~8,2%:%DT:~10,2%:%DT:~12,2%
 
 (
     echo ────────────────────────────────────────
-    echo   Completed : %TIMESTAMP%
-    echo   Name      : %TORRENT_NAME%
-    echo   Hash      : %TORRENT_HASH%
-    echo   Location  : %TORRENT_SAVE_PATH%
-    echo   Total     : %TORRENT_SIZE% bytes
-    echo   File count: %TORRENT_FILE_COUNT%
-    echo   Api Key   : %LIME_API_KEY%
+    echo   Completed 		: %TIMESTAMP%
+    echo   Name      		: %TORRENT_NAME%
+    echo   Hash      		: %TORRENT_HASH%
+    echo   Location  		: %TORRENT_SAVE_PATH%
+    echo   Total     		: %TORRENT_SIZE% bytes
+    echo   File count		: %TORRENT_FILE_COUNT%
+    echo   Api Key   		: %LIME_API_KEY%
+	echo   Api Endpoint		: %LIME_API_ENDPOINT%
     echo.
 
     REM ── Loop per-file using underscore-indexed env vars ──────────

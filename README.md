@@ -63,7 +63,7 @@ Built on [libtorrent 2.0.11](https://libtorrent.org) and [Flask](https://flask.p
 - **Single active session per account** — prevents concurrent logins for the same user
 - **Granular delete permissions** — separate permissions for metadata-only removal vs. file deletion
 - **Per-user activity logs** — each user sees only their own log; admin sees all; written to separate files
-- **Post-download commands** — run a shell command automatically when a torrent finishes; supports per-torrent override and privilege dropping (`run_as`); `LIME_API_KEY` and `LIME_API_URL` are automatically injected so scripts can call the REST API without hard-coding credentials
+- **Post-download commands** — run a shell command automatically when a torrent finishes; supports per-torrent override and privilege dropping (`run_as`); `LIME_API_KEY` and `LIME_API_ENDPOINT` are automatically injected so scripts can call the REST API without hard-coding credentials
 - **HTTP file download** — serve completed files from the server over HTTP via API key in URL path
 - **View-only mode** — unauthenticated users can monitor torrents but cannot modify anything
 - **Login rate limiting** — IP lockout after 3 failed attempts (5-minute cooldown)
@@ -570,7 +570,7 @@ curl -X POST http://127.0.0.1:5000/postcmd/INFOHASH \
 | `TORRENT_SIZE` | Total torrent size in bytes |
 | `TORRENT_FILE_COUNT` | Number of files inside the torrent |
 | `LIME_API_KEY` | Current admin API key — use this to call the REST API from within the script without hard-coding credentials (matches `API_KEY` env var or auto-generated value) |
-| `LIME_API_URL` | Base URL of this LimeTorrent instance (e.g. `http://127.0.0.1:5000`) — combine with `LIME_API_KEY` to make API calls from the script |
+| `LIME_API_ENDPOINT` | Base URL of this LimeTorrent instance (e.g. `http://127.0.0.1:5000`) — combine with `LIME_API_KEY` to make API calls from the script |
 
 **Per-file** — indexed with `_i` suffix (zero-based, from `0` to `TORRENT_FILE_COUNT - 1`):
 
@@ -602,11 +602,11 @@ curl -X POST http://127.0.0.1:5000/postcmd/INFOHASH \
 - `run_as` uses `setuid` to drop privileges — only works when LimeTorrent runs as root/sudo (Linux/macOS only; ignored on Windows)
 - Each torrent fires its command **at most once per server session**, even after restart
 - Clear a command by sending `{"command": ""}` to its endpoint
-- `LIME_API_KEY` and `LIME_API_URL` are always injected — use them to call the REST API from your script:
+- `LIME_API_KEY` and `LIME_API_ENDPOINT` are always injected — use them to call the REST API from your script:
 
 ```bash
 # Example: stop the torrent and send a notification after processing
-curl -s -X POST "$LIME_API_URL/stop/$TORRENT_HASH" \
+curl -s -X POST "$LIME_API_ENDPOINT/stop/$TORRENT_HASH" \
   -H "Lime-API-Key: $LIME_API_KEY"
 ```
 
