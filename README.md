@@ -5,7 +5,7 @@
 # LimeTorrent
 
 **A lightweight, self-hosted torrent manager with a REST API and Web UI.**  
-Built on [libtorrent 2.0.11](https://libtorrent.org) and [Flask](https://flask.palletsprojects.com).
+Built on [libtorrent 1.2.19](https://libtorrent.org) and [Flask](https://flask.palletsprojects.com).
 
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Windows-a3e635)](#installation)
 [![Arch](https://img.shields.io/badge/arch-amd64%20%7C%20arm64-a3e635)](#installation)
@@ -55,15 +55,15 @@ Built on [libtorrent 2.0.11](https://libtorrent.org) and [Flask](https://flask.p
 - **All-time statistics** — cumulative upload/download totals persisted across restarts
 - **REST API** — full JSON API with per-user API-key authentication and permission levels
 - **Web UI** — dark/light theme, live progress, drag-and-drop upload, multi-select bulk actions, resizable drawer
-- **Torrent creation** — create `.torrent` files from local data with a custom internal name; `.torrent` filename is derived from the internal name automatically
-- **Auto-seed after create** — admin users can have a freshly created torrent immediately added to the session in seed mode with super-seeding forced ON (`auto_seed: true`)
+- **Torrent creation** — create `.torrent` files from local data; `name` parameter sets the output `.torrent` filename, while internal torrent structure always uses the actual disk directory/file name to ensure seeding works correctly; supports web seeds (BEP-19 url_seed / BEP-17 http_seed), custom trackers, comment, and private flag
+- **Auto-seed after create** — admin users can have a freshly created torrent immediately added to the session and verified via recheck (`auto_seed: true`); excluded from post-download command by design
 - **Multi-user access control** — admin creates regular users with individually selectable permissions
 - **Auto-provisioned API keys** — a personal API key is automatically generated when a non-admin account is created and returned in the creation response; users can view and revoke their keys via `/api/keys/me` but cannot generate new ones (admin issues additional keys via `POST /users/<username>/api_key`); admin key is fixed via `API_KEY` env var
 - **RAM-only admin credentials** — admin password and API key are never written to disk; set via CLI/env
 - **Single active session per account** — prevents concurrent logins for the same user
 - **Granular delete permissions** — separate permissions for metadata-only removal vs. file deletion
 - **Per-user activity logs** — each user sees only their own log; admin sees all; written to separate files
-- **Post-download commands** — run a shell command automatically when a torrent finishes; supports per-torrent override and privilege dropping (`run_as`); `LIME_API_KEY` and `LIME_API_ENDPOINT` are automatically injected so scripts can call the REST API without hard-coding credentials
+- **Post-download commands** — run a shell command automatically when a torrent finishes; supports per-torrent override and privilege dropping (`run_as`); `LIME_API_KEY` and `LIME_API_ENDPOINT` are automatically injected; **RAM-only** — config cleared on restart; torrents added via `/create` (auto-seed) and `/seed` are excluded
 - **HTTP file download** — serve completed files from the server over HTTP via API key in URL path
 - **View-only mode** — unauthenticated users can monitor torrents but cannot modify anything
 - **Login rate limiting** — IP lockout after 3 failed attempts (5-minute cooldown)
@@ -164,7 +164,7 @@ On first launch you will see:
   Password   : lAQ90OeO  [auto-generated -- save this!]
   API Key    : cc69b715bbc953e69127697ab63c2a1f84d9e2f0b5c7d8e3a4b9f21c6d7e8f0a1
 ------------------------------------------------------------
-  libtorrent : 2.1.0.0
+  libtorrent : 1.2.19.0
   Listen     : 0.0.0.0:6881   max-connections: 500
   Super-seed : ON (default)
   Debug log  : off (errors only)
@@ -191,7 +191,7 @@ If the terminal is cleared before you note the credentials, visit **`http://127.
 ```
 usage: LimeTorrent [OPTIONS]
 
-LimeTorrent — libtorrent 2.0.x REST API server.
+LimeTorrent — libtorrent 1.2.x REST API server.
 Manages torrents via HTTP: add (magnet/file/URL), pause, stop,
 delete (by hash or .torrent file), seed, create, monitor, and more.
 
@@ -459,7 +459,7 @@ Full interactive documentation is available at **`http://127.0.0.1:5000/doc`** w
 | `POST` | `/limit/global` | Global speed limits |
 | `POST` | `/super_seed/{hash}` | Toggle super-seeding per torrent |
 | `POST` | `/super_seed/global` | Toggle global super-seeding |
-| `POST` | `/create` | Create `.torrent` from local path; supports custom internal name (`name`), auto-seed with super-seed ON (`auto_seed`, admin only) |
+| `POST` | `/create` | Create `.torrent` from local path; `name` sets the output `.torrent` filename only; `trackers`, `web_seeds` (BEP-19/17), `comment`, `private`, `auto_seed` (admin only) |
 | `POST` | `/seed` | Seed existing local data |
 | `GET` | `/stats/global` | Session + all-time stats |
 | `POST` | `/save` | Persist resume data to disk now |
@@ -527,6 +527,78 @@ LimeTorrent saves **resume data** to disk so torrents survive server restarts.
 1. Copy the downloaded data folder to the same path on the new machine
 2. Copy the corresponding `.resume` file from `RESUME_DIR` to the new instance's `RESUME_DIR`
 3. Start LimeTorrent — it will recheck and resume from where it left off
+
+---
+
+## Web Seeds (`/create`)
+
+LimeTorrent supports embedding web seed sources directly into created `.torrent` files.
+Two BitTorrent web seed protocols are supported:
+
+| Protocol | BEP | `type` value | Notes |
+|---|---|---|---|
+| HTTP url_seed | [BEP-19](https://www.bittorrent.org/beps/bep_0019.html) | `url_seed` | Default — modern clients, recommended |
+| HTTP http_seed | [BEP-17](https://www.bittorrent.org/beps/bep_0017.html) | `http_seed` | Legacy protocol, still widely supported |
+
+### `web_seeds` field formats
+
+```json
+// Plain string — automatically treated as url_seed (BEP-19)
+"web_seeds": [
+  "https://mirror1.example.com/MyContent/",
+  "https://mirror2.example.com/MyContent/"
+]
+
+// Object with explicit type
+"web_seeds": [
+  {"url": "https://mirror1.example.com/MyContent/", "type": "url_seed"},
+  {"url": "https://legacy.example.com/MyContent/",  "type": "http_seed"}
+]
+
+// Mixed — plain strings and objects in the same array
+"web_seeds": [
+  "https://mirror1.example.com/MyContent/",
+  {"url": "https://cdn.example.com/MyContent/",    "type": "url_seed"},
+  {"url": "https://legacy.example.com/MyContent/", "type": "http_seed"}
+]
+
+// Single URL shorthand — always url_seed (BEP-19)
+"web_seed": "https://mirror.example.com/MyContent/"
+```
+
+### Validation rules
+
+- URL **must** start with `http://` or `https://` — others are silently skipped
+- Invalid URLs do **not** fail the request — they are reported in the response header
+- Unknown `type` values fall back to `url_seed`
+
+### Response headers
+
+| Header | Present when |
+|---|---|
+| `X-LimeTorrent-WebSeeds` | At least one valid web seed was added — comma-separated URLs |
+| `X-LimeTorrent-WebSeedErrors` | At least one URL was invalid — semicolon-separated error messages |
+
+### Full example
+
+```json
+POST /create
+{
+  "path": "/data/MyContent",
+  "name": "My Release",
+  "trackers": [
+    "udp://tracker.opentrackr.org:1337/announce"
+  ],
+  "web_seeds": [
+    "https://mirror1.example.com/MyContent/",
+    {"url": "https://mirror2.example.com/MyContent/", "type": "url_seed"},
+    {"url": "https://legacy.example.com/MyContent/",  "type": "http_seed"}
+  ],
+  "comment": "My release",
+  "private": false,
+  "auto_seed": true
+}
+```
 
 ---
 
@@ -600,7 +672,7 @@ curl -X POST http://127.0.0.1:5000/postcmd/INFOHASH \
 
 - Commands run in a shell (`sh -c` / `cmd /c`) with a **5-minute timeout**
 - `run_as` uses `setuid` to drop privileges — only works when LimeTorrent runs as root/sudo (Linux/macOS only; ignored on Windows)
-- Each torrent fires its command **at most once per server session**, even after restart
+- Each torrent fires its command **at most once per process lifetime** — fired state is RAM-only and resets on restart
 - Clear a command by sending `{"command": ""}` to its endpoint
 - `LIME_API_KEY` and `LIME_API_ENDPOINT` are always injected — use them to call the REST API from your script:
 
@@ -685,8 +757,7 @@ All persistent data is stored in a platform-specific config directory:
 | `logs/` | Application, admin, and per-user log files |
 | `users.json` | Non-admin user accounts and permissions (admin is never written here) |
 | `_stats.json` | All-time cumulative upload/download statistics |
-| `post_download_cmds.json` | Saved post-download command configurations |
-| `post_download_fired.json` | Hashes of torrents whose post-command already ran |
+| _(post-cmd config)_ | Post-download commands are **RAM-only** — not stored on disk; cleared on restart |
 
 ---
 
