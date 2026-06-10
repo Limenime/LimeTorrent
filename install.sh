@@ -40,5 +40,3 @@ install -m 755 "$TMP_DIR/LimeTorrent" /usr/local/bin/LimeTorrent
 echo
 echo "✅ LimeTorrent installed successfully!"
 echo
-echo "Run with:"
-echo "  LimeTorrent"
